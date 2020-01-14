@@ -194,10 +194,11 @@ int main(int argc, char **argv)
 {
     Options options(argc, argv);
 
+    int thread = 0;
     if(!options.ip_addr || !options.port || !options.root_dir)
     {
         printf("%s","Wrong arguments!");
-        return 0;
+        return thread;
     }
 
     directory = options.root_dir;
