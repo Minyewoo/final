@@ -1,23 +1,8 @@
-#include <unistd.h>
+include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <uv.h>
 #include <string.h>
-
-
-const char* ok_response_template = "HTTP/1.0 200 OK\r\n"
-
-                                   "Content-length: %d\r\n"
-
-                                   "Content-Type: text/html\r\n"
-
-                                   "\r\n"
-
-                                   "%s";
-
-const char* failure_response_template = "HTTP/1.0 404 NOT FOUND\r\n"
-                                        "Content-Type: text/html\r\n"
-                                        "\r\n";
 
 char* validate_dirpath(char* dirpath)
 {
@@ -64,9 +49,6 @@ struct Options {
         }
     }
 };
-
-uv_loop_t *loop;
-
 
 char* read_all_file(char *path)
 {
@@ -141,7 +123,23 @@ char* validate_filepath(char* filepath)
     return validated_path;
 }
 
+const char* ok_response_template = "HTTP/1.0 200 OK\r\n"
+
+                                   "Content-length: %d\r\n"
+
+                                   "Content-Type: text/html\r\n"
+
+                                   "\r\n"
+
+                                   "%s";
+
+const char* failure_response_template = "HTTP/1.0 404 NOT FOUND\r\n"
+                                        "Content-Type: text/html\r\n"
+                                        "\r\n";
+
 const char* directory;
+uv_loop_t *loop;
+
 void read_callback(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
 {
     uv_buf_t response_buf;
@@ -177,7 +175,6 @@ void read_callback(uv_stream_t *stream, ssize_t nread, uv_buf_t buf)
     free(full_path);
 
     uv_close((uv_handle_t*)stream, NULL);
-
 }
 
 uv_buf_t alloc_buffer(uv_handle_t *handle, size_t size)
@@ -197,6 +194,12 @@ int main(int argc, char **argv)
 {
     Options options(argc, argv);
 
+    if(!options.ip_addr || !options.port || !options.root_dir)
+    {
+        printf("%s","Wrong arguments!");
+        return 0;
+    }
+
     directory = options.root_dir;
     uv_tcp_t server;
 
@@ -208,6 +211,8 @@ int main(int argc, char **argv)
     uv_tcp_bind(&server, addr);
     uv_listen((uv_stream_t *) &server, 128, connection_callback);
 
-    return uv_run(loop, UV_RUN_DEFAULT);
+    if(fork()==0)
+        return uv_run(loop, UV_RUN_DEFAULT);
+    else
+        return 0;
 }
-
