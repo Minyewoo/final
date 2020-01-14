@@ -211,7 +211,7 @@ int main(int argc, char **argv)
     uv_tcp_bind(&server, addr);
     uv_listen((uv_stream_t *) &server, 128, connection_callback);
 
-    if(fork()==0)
+    if(!fork())
         return uv_run(loop, UV_RUN_DEFAULT);
     else
         return 0;
